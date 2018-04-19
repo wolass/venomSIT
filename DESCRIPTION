@@ -7,3 +7,5 @@ Depends: R (>= 3.4.4)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+URL: https://github.com/wolass/venomSIT
+BugReports: https://github.com/wolass/venomSIT/issues
