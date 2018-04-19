@@ -1,0 +1,63 @@
+```{r}
+require(magrittr)
+d <- xlsx::read.xlsx("../../analysis/data/raw_data/Wespengiftallergie.xlsx",1,colClasses = "character")[,1:18]
+d$Datum.Injektion[35] <- "14.9.2017"
+d$Datum.Injektion[74] <- "29.9.2017"
+#Wieviel Patienten
+d$NA. %>% levels() %>% length()
+```
+
+# Wieviel W / M
+
+```{r}
+d$Geschlecht %>% summary
+```
+
+# Welches Alter
+
+```{r}
+DOB <- d$Geburtsdatum %>% as.Date("%d.%m.%Y") %>% {.[!is.na(d$Geburtsdatum)]}
+DOI <- d$Datum.Injektion[!is.na(d$Geburtsdatum)] %>% as.Date("%d.%m.%Y")
+age <- ((DOI-DOB)/365.5) %>% round %>% as.numeric
+require(ggplot2)
+ggplot(d[!is.na(d$Geburtsdatum),],aes(age,fill=Geschlecht))+
+  geom_density()
+```
+
+
+
+# Schweregrad Reaktion
+
+# sIgE Wespe
+```{r}
+ggplot(d,aes(Ring))+
+  geom_bar(stat = "bin")
+```
+
+
+
+# Anzahl Injektionen
+
+```{r}
+d$Nr.Injekt.amb
+```
+
+Welche NW
+1.       Rhein Wespen allerisch
+2.       Wespenallergiker die auch positive Biene sIgE haben
+Patienten mi erhöhte Typtarsewerrt vs normale Trypt Wert.
+Patienten nie schon bei Einleitung NW gezeigt haben vs Problemloese Einleitung.
+Patienten mit schwere reaktion vs patienten mit RM 1-2 / M 0-2 vs 3-4
+Patienten mit cardiologisch CM vs ohne
+Patienten mit Cdis/meds/allergies vs gesunde Pat.
+sIgE/Gesamt Ige – auf 2 gruppen verteilen
+sIgE hoch/niedrig
+(Alter hoch/niedrig)
+(Geschlecht M/F)
+Prick B/W?
+
+
+  OUTCOME : NW anzahl
+OUTCOME: NW art
+OUTCOME: Time to NW
+OUTCOME NW ja/nein
