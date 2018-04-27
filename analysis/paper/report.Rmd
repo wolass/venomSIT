@@ -1,8 +1,11 @@
 ```{r}
 require(magrittr)
-d <- xlsx::read.xlsx("../../analysis/data/raw_data/Wespengiftallergie.xlsx",1,colClasses = "character")[,1:18]
-d$Datum.Injektion[35] <- "14.9.2017"
-d$Datum.Injektion[74] <- "29.9.2017"
+d <- xlsx::read.xlsx("../../analysis/data/raw_data/Wespengiftallergie - komplett.xlsx",1,colClasses = "character")
+# require(lubridate)
+d$Datum.Injektion[86] <- "14.9.2017"
+d$Datum.Injektion[191] <- "29.9.2017"
+d$Datum.Injektion %<>% as.Date.character(format = "%d.%m.%Y")
+
 #Wieviel Patienten
 d$NA. %>% levels() %>% length()
 ```
@@ -10,18 +13,20 @@ d$NA. %>% levels() %>% length()
 # Wieviel W / M
 
 ```{r}
-d$Geschlecht %>% summary
+d$Geschlecht[!d$NA. %>% duplicated()] %>% summary
+u <-!d$NA. %>% duplicated()
 ```
 
 # Welches Alter
 
 ```{r}
-DOB <- d$Geburtsdatum %>% as.Date("%d.%m.%Y") %>% {.[!is.na(d$Geburtsdatum)]}
-DOI <- d$Datum.Injektion[!is.na(d$Geburtsdatum)] %>% as.Date("%d.%m.%Y")
-age <- ((DOI-DOB)/365.5) %>% round %>% as.numeric
+d$Geburtsdatum%<>% as.Date("%d.%m.%Y") 
+d$Geburtsdatum[211:317] <- d$Geburtsdatum[211]
+# d$Datum.Injektion %<>% as.Date("%d.%m.%Y")
+d$age.at.injektion <- ((d$Datum.Injektion-d$Geburtsdatum)/365.5) %>% round %>% as.numeric
 require(ggplot2)
-ggplot(d[!is.na(d$Geburtsdatum),],aes(age,fill=Geschlecht))+
-  geom_density()
+ggplot(d[!is.na(d$Geburtsdatum),],aes(age.at.injektion,fill=Geschlecht))+
+  geom_density(alpha = 0.5)
 ```
 
 
@@ -30,34 +35,115 @@ ggplot(d[!is.na(d$Geburtsdatum),],aes(age,fill=Geschlecht))+
 
 # sIgE Wespe
 ```{r}
-ggplot(d,aes(Ring))+
+ggplot(d[u,],aes(Ring))+
   geom_bar(stat = "bin")
 ```
 
 
+```{r}
+ggplot(d[u,],aes(Müller))+
+  geom_bar(stat = "bin")
+```
 
 # Anzahl Injektionen
 
 ```{r}
-d$Nr.Injekt.amb
+d$Nr.Injekt.amb %>% length()
 ```
 
-Welche NW
+## Welche NW
+
+```{r}
+d$NW %>% summary %>% knitr::kable()
+```
+
+
 1.       Rhein Wespen allerisch
+
+```{r}
+d$NWs <- rep("no",length(d$NW))
+d$NWs[which(d$NW!="0")] <- "yes"
+
+ggplot(d, 
+       aes(sIgE.kU.l.B %>% as.character %>% as.numeric, 
+           color = NWs))+
+  geom_density()+
+  scale_x_log10()
+```
+
+
+```{r}
+d$NWs <- rep("no",length(d$NW))
+d$NWs[which(d$NW!="0")] <- "yes"
+
+ggplot(d, 
+       aes(gIgE.kU.l %>% as.character %>% as.numeric, 
+           color = NWs))+
+  geom_density()+
+  scale_x_log10()
+```
+
+
+```{r}
+ggplot(d, 
+       aes(sIgE.kU.l.W %>% as.character %>% as.numeric, 
+           color = NWs))+
+  geom_density()+
+  scale_x_log10()
+```
+
+
+
+```{r}
+ggplot(d, 
+       aes(Tryptase.ug.l %>% as.character %>% as.numeric, 
+           color = NWs))+
+  geom_density()+
+  scale_x_log10()
+```
+
+```{r}
+d$Ort.Reaktion %>% table(d$NW) %>% knitr::kable()
+```
+
 2.       Wespenallergiker die auch positive Biene sIgE haben
+
+
 Patienten mi erhöhte Typtarsewerrt vs normale Trypt Wert.
+
+
+
 Patienten nie schon bei Einleitung NW gezeigt haben vs Problemloese Einleitung.
+
+
+
+
 Patienten mit schwere reaktion vs patienten mit RM 1-2 / M 0-2 vs 3-4
+
+
+```{r}
+d$severe <- rep("mild",length(d$NA.))
+d$severe[d$Müller>2] <- "severe"
+d$severe[d$Ring>2] <- "severe"
+
+d$severe %>% table(d$NW) %>% knitr::kable()
+```
+
+
 Patienten mit cardiologisch CM vs ohne
+
+```{r}
+d$Nebendiag%>% table(d$NW) %>% knitr::kable()
+
+```
+
 Patienten mit Cdis/meds/allergies vs gesunde Pat.
 sIgE/Gesamt Ige – auf 2 gruppen verteilen
 sIgE hoch/niedrig
 (Alter hoch/niedrig)
 (Geschlecht M/F)
-Prick B/W?
 
+```{r}
+d$Geschlecht %>% table(d$NW) %>% knitr::kable()
+```
 
-  OUTCOME : NW anzahl
-OUTCOME: NW art
-OUTCOME: Time to NW
-OUTCOME NW ja/nein
